@@ -44,14 +44,15 @@ async function signInWithGoogle() {
   await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.href
+      redirectTo: "https://paridhi-shethia.github.io/ClassroomPlus/index.html"
     }
   });
 }
+
 
 async function signOut() {
   await supabase.auth.signOut();
   window.location.href = "index.html";
 }
 
-initAuth();
+initAuth();    
