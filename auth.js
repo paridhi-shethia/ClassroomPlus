@@ -55,4 +55,4 @@ async function signOut() {
   window.location.href = "index.html";
 }
 
-initAuth();    
+initAuth();
