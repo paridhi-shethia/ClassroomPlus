@@ -1,5 +1,5 @@
 async function getCurrentUser() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   return session ? session.user : null;
 }
 
@@ -15,7 +15,7 @@ async function renderNotes() {
     return;
   }
 
-  const { data: notes, error } = await supabase
+  const { data: notes, error } = await db
     .from("notes")
     .select("*")
     .eq("course_id", courseId)
@@ -71,7 +71,7 @@ async function addNote() {
     return;
   }
 
-  const { error } = await supabase
+  const { error } = await db
     .from("notes")
     .insert({
       user_id:   user.id,
@@ -91,7 +91,7 @@ async function addNote() {
 async function deleteNote(id) {
   if (!confirm("Delete this note?")) return;
 
-  const { error } = await supabase
+  const { error } = await db
     .from("notes")
     .delete()
     .eq("id", id);
@@ -122,7 +122,7 @@ async function saveEdit(id) {
   const newText = ta.value.trim();
   if (newText === "") return;
 
-  const { error } = await supabase
+  const { error } = await db
     .from("notes")
     .update({ text: newText })
     .eq("id", id);
