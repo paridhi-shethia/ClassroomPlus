@@ -1,11 +1,27 @@
 async function initAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   renderAuthArea(session);
 
-  supabase.auth.onAuthStateChange((_event, session) => {
+  db.auth.onAuthStateChange((_event, session) => {
     renderAuthArea(session);
   });
 }
+
+async function signInWithGoogle() {
+  await db.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: "https://paridhi-shethia.github.io/ClassroomPlus/index.html"
+    }
+  });
+}
+
+async function signOut() {
+  await db.auth.signOut();
+  window.location.href = "index.html";
+}
+
+initAuth();
 
 function renderAuthArea(session) {
   const area = document.getElementById("auth-area");
