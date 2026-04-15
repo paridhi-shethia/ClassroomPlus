@@ -1,5 +1,5 @@
 async function getCurrentUser() {
-  const { data: { session } } = await db.auth.getSession();
+  const { data: { session } } = await window.db.auth.getSession();
   return session ? session.user : null;
 }
 
@@ -15,7 +15,7 @@ async function renderNotes() {
     return;
   }
 
-  const { data: notes, error } = await db
+  const { data: notes, error } = await window.db
     .from("notes")
     .select("*")
     .eq("course_id", courseId)
@@ -52,7 +52,7 @@ function renderNoteCard(note) {
     <div class="note-footer">
       <span class="note-date">${date}</span>
       <div class="note-actions">
-        <button class="note-btn edit-btn" onclick="startEdit('${note.id}', this)">Edit</button>
+        <button class="note-btn edit-btn" onclick="startEdit('${note.id}')">Edit</button>
         <button class="note-btn delete-btn" onclick="deleteNote('${note.id}')">Delete</button>
       </div>
     </div>
@@ -71,18 +71,11 @@ async function addNote() {
     return;
   }
 
-  const { error } = await db
+  const { error } = await window.db
     .from("notes")
-    .insert({
-      user_id:   user.id,
-      course_id: courseId,
-      text:      text
-    });
+    .insert({ user_id: user.id, course_id: courseId, text: text });
 
-  if (error) {
-    alert("Could not save note. Try again.");
-    return;
-  }
+  if (error) { alert("Could not save note. Try again."); return; }
 
   input.value = "";
   renderNotes();
@@ -90,24 +83,18 @@ async function addNote() {
 
 async function deleteNote(id) {
   if (!confirm("Delete this note?")) return;
-
-  const { error } = await db
-    .from("notes")
-    .delete()
-    .eq("id", id);
-
+  const { error } = await window.db.from("notes").delete().eq("id", id);
   if (!error) renderNotes();
 }
 
-function startEdit(id, btn) {
+function startEdit(id) {
   const card        = document.getElementById(`note-${id}`);
   const currentText = card.querySelector(".note-content").innerText;
-
   card.innerHTML = `
     <textarea class="note-textarea edit-textarea" id="edit-input-${id}">${currentText}</textarea>
     <div class="note-footer">
       <div class="note-actions">
-        <button class="note-btn save-btn"   onclick="saveEdit('${id}')">Save</button>
+        <button class="note-btn save-btn" onclick="saveEdit('${id}')">Save</button>
         <button class="note-btn cancel-btn" onclick="renderNotes()">Cancel</button>
       </div>
     </div>
@@ -121,12 +108,7 @@ async function saveEdit(id) {
   const ta      = document.getElementById(`edit-input-${id}`);
   const newText = ta.value.trim();
   if (newText === "") return;
-
-  const { error } = await db
-    .from("notes")
-    .update({ text: newText })
-    .eq("id", id);
-
+  const { error } = await window.db.from("notes").update({ text: newText }).eq("id", id);
   if (!error) renderNotes();
 }
 
@@ -150,8 +132,12 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-document.getElementById("note-input").addEventListener("keydown", function(e) {
-  if (e.key === "Enter" && e.ctrlKey) addNote();
+document.addEventListener("DOMContentLoaded", function() {
+  const noteInput = document.getElementById("note-input");
+  if (noteInput) {
+    noteInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && e.ctrlKey) addNote();
+    });
+  }
+  renderNotes();
 });
-
-renderNotes();
