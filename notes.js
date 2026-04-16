@@ -1,137 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ClassroomPlus – Class View</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+async function getCurrentUser() {
+  const { data: { session } } = await window.db.auth.getSession();
+  return session ? session.user : null;
+}
 
-  <nav class="navbar">
-    <span class="navbar-logo">ClassroomPlus</span>
-    <div class="navbar-links">
-      <a href="index.html" class="nav-link">Dashboard</a>
-      <a href="submitted.html" class="nav-link">Submitted Work</a>
-      <div id="auth-area"></div>
-    </div>
-  </nav>
+async function renderNotes() {
+  const list = document.getElementById("notes-list");
+  if (!list) return;
+  
+  list.innerHTML = `<p style="color:#bbb; font-size:0.85rem; padding:0.5rem 0;">Loading notes...</p>`;
 
-  <div class="main-content">
+  const user = await getCurrentUser();
 
-    <button class="back-btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
+  if (!user) {
+    list.innerHTML = `<p class="empty-state">Sign in with Google to save and view your notes.</p>`;
+    updateNotesHeading(0);
+    return;
+  }
 
-    <!-- Static header band -->
-    <div class="class-header-box" style="background-color: #7F77DD;">
-      <h1 class="class-title">Operating Systems</h1>
-      <p class="class-teacher">Prof. Sharma</p>
-    </div>
+  const { data: notes, error } = await window.db
+    .from("notes")
+    .select("*")
+    .eq("course_id", courseId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
-    <!-- Tab buttons -->
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('announcements', this)">Announcements</button>
-      <button class="tab-btn" onclick="switchTab('assignments', this)">Assignments</button>
-      <button class="tab-btn" onclick="switchTab('submitted', this)">Submitted</button>
-      <button class="tab-btn" onclick="switchTab('notes', this)">My Notes</button>
-    </div>
+  if (error) {
+    console.error("Notes fetch error:", error);
+    list.innerHTML = `<p class="empty-state">Error loading notes. Try refreshing.</p>`;
+    return;
+  }
 
-    <!-- Announcements Tab -->
-    <div id="tab-announcements" class="tab-panel active">
-      <div class="announcement-card">
-        <div class="announcement-text">Mid-sem syllabus revised. Unit 4 is excluded from the exam.</div>
-        <div class="announcement-date">Apr 3, 2026</div>
-      </div>
-      <div class="announcement-card">
-        <div class="announcement-text">Lab session on Thursday has been shifted to Friday 2pm in Lab 3.</div>
-        <div class="announcement-date">Apr 1, 2026</div>
-      </div>
-      <div class="announcement-card">
-        <div class="announcement-text">Assignment submissions must be in PDF format only. No other format will be accepted.</div>
-        <div class="announcement-date">Mar 28, 2026</div>
-      </div>
-    </div>
+  updateNotesHeading(notes.length);
 
-    <!-- Assignments Tab -->
-    <div id="tab-assignments" class="tab-panel">
-      <div class="assignment-item">
-        <div>
-          <div class="assignment-title">Process Scheduling Report</div>
-          <div class="assignment-due">Due: Apr 10, 2026</div>
-        </div>
-        <span class="badge badge-pending">Pending</span>
-      </div>
-      <div class="assignment-item">
-        <div>
-          <div class="assignment-title">Semaphore Implementation</div>
-          <div class="assignment-due">Due: Mar 28, 2026 &nbsp;·&nbsp; Submitted: Mar 27, 2026</div>
-        </div>
-        <span class="badge badge-submitted">Submitted</span>
-      </div>
-      <div class="assignment-item">
-        <div>
-          <div class="assignment-title">Deadlock Analysis</div>
-          <div class="assignment-due">Due: Mar 15, 2026 &nbsp;·&nbsp; Submitted: Mar 14, 2026</div>
-        </div>
-        <span class="badge badge-graded">Graded 18/20</span>
-      </div>
-    </div>
+  if (notes.length === 0) {
+    list.innerHTML = `<p class="empty-state">No notes yet. Add one above.</p>`;
+    return;
+  }
 
-    <!-- Submitted Tab -->
-    <div id="tab-submitted" class="tab-panel">
-      <div class="assignment-item">
-        <div>
-          <div class="assignment-title">Semaphore Implementation</div>
-          <div class="assignment-due">Due: Mar 28, 2026 &nbsp;·&nbsp; Submitted: Mar 27, 2026</div>
-        </div>
-        <span class="badge badge-submitted">Submitted</span>
-      </div>
-      <div class="assignment-item">
-        <div>
-          <div class="assignment-title">Deadlock Analysis</div>
-          <div class="assignment-due">Due: Mar 15, 2026 &nbsp;·&nbsp; Submitted: Mar 14, 2026</div>
-        </div>
-        <span class="badge badge-graded">Graded 18/20</span>
-      </div>
-    </div>
+  list.innerHTML = "";
+  notes.forEach(note => renderNoteCard(note));
+}
 
-   <!-- Notes Tab -->
-<div id="tab-notes" class="tab-panel">
-  <div class="notes-input-row">
-    <textarea id="note-input" class="note-textarea" placeholder="Write a note for this class... (Ctrl+Enter to save)"></textarea>
-    <button class="add-note-btn" onclick="addNote()">Add Note</button>
-  </div>
-  <div id="notes-heading"></div>
-  <div id="notes-list"></div>
-</div>
+function renderNoteCard(note) {
+  const list = document.getElementById("notes-list");
+  const date = new Date(note.created_at).toLocaleDateString("en-IN", {
+    day: "numeric", month: "short", year: "numeric"
+  });
 
-  </div> <!-- closes main-content -->
-
-
-  <footer class="footer">
-    ClassroomPlus &nbsp;·&nbsp; A student productivity companion &nbsp;·&nbsp; Minor Project 2026
-  </footer>
-
-  <script>
-    const courseId = new URLSearchParams(window.location.search).get("id") || "operating-systems";
-    function switchTab(name, btn) {
-      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById("tab-" + name).classList.add("active");
-      btn.classList.add("active");
-    }
-
-    
-
-    document.addEventListener("keydown", function(e) {
-      if (e.key === "Enter" && e.ctrlKey) addNote();
-    });
-  </script>
-
-  <script src="data.js"></script>
-  <script src="classview.js"></script>
-  <script src="notes.js"></script>
-  <script src="auth.js"></script>
-</body>
-</html>
+  const card = docume
