@@ -96,42 +96,12 @@
       </div>
     </div>
 
-    <!-- Notes Tab -->
-    <div id="tab-notes" class="tab-panel">
-      <div class="notes-input-row">
-        <textarea id="note-input" class="note-textarea" placeholder="Write a note for this class... (Ctrl+Enter to save)"></textarea>
-        <button class="add-note-btn" onclick="addNote()">Add Note</button>
-      </div>
-      <!-- Mock existing notes -->
-      <div class="note-card">
-        <div class="note-content">Peterson's solution uses two variables — flag[] and turn. flag[i] = true means process i wants to enter. turn gives the other process priority.</div>
-        <div class="note-footer">
-          <span class="note-date">Apr 2, 2026</span>
-          <div class="note-actions">
-            <button class="note-btn edit-btn">Edit</button>
-            <button class="note-btn delete-btn">Delete</button>
-          </div>
-        </div>
-      </div>
-      <div class="note-card">
-        <div class="note-content">Deadlock conditions: Mutual Exclusion, Hold and Wait, No Preemption, Circular Wait. All 4 must hold simultaneously.</div>
-        <div class="note-footer">
-          <span class="note-date">Mar 30, 2026</span>
-          <div class="note-actions">
-            <button class="note-btn edit-btn">Edit</button>
-            <button class="note-btn delete-btn">Delete</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
   <footer class="footer">
     ClassroomPlus &nbsp;·&nbsp; A student productivity companion &nbsp;·&nbsp; Minor Project 2026
   </footer>
 
   <script>
+    const courseId = new URLSearchParams(window.location.search).get("id") || "operating-systems";
     function switchTab(name, btn) {
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -139,27 +109,7 @@
       btn.classList.add("active");
     }
 
-    function addNote() {
-      const input = document.getElementById("note-input");
-      const text = input.value.trim();
-      if (text === "") { input.focus(); return; }
-
-      const notesList = document.querySelector("#tab-notes .note-card:first-of-type");
-      const newNote = document.createElement("div");
-      newNote.className = "note-card";
-      newNote.innerHTML = `
-        <div class="note-content">${text}</div>
-        <div class="note-footer">
-          <span class="note-date">Today</span>
-          <div class="note-actions">
-            <button class="note-btn edit-btn">Edit</button>
-            <button class="note-btn delete-btn" onclick="this.closest('.note-card').remove()">Delete</button>
-          </div>
-        </div>
-      `;
-      document.getElementById("tab-notes").insertBefore(newNote, notesList);
-      input.value = "";
-    }
+    
 
     document.addEventListener("keydown", function(e) {
       if (e.key === "Enter" && e.ctrlKey) addNote();
