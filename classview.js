@@ -4,10 +4,9 @@ const course   = courses.find(c => c.id === courseId);
 
 if (!course) window.location.href = "index.html";
 
-// Update browser tab title
 document.title = `${course.name} – ClassroomPlus`;
 
-// ── Class header band ────────────────────────────────────
+// ── Class header ─────────────────────────────────────────
 document.getElementById("class-header").innerHTML = `
   <div class="class-header-box" style="background-color: ${course.color};">
     <h1 class="class-title">${course.name}</h1>
@@ -17,19 +16,14 @@ document.getElementById("class-header").innerHTML = `
 
 // ── Tab switcher ─────────────────────────────────────────
 function switchTab(name, btn) {
-  // Hide all panels
   document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  // Remove active from all tab buttons
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  // Show selected panel
   document.getElementById("tab-" + name).classList.add("active");
-  // Mark clicked button active
   btn.classList.add("active");
 }
 
-// ── Announcements tab ────────────────────────────────────
+// ── Announcements ────────────────────────────────────────
 const annList = document.getElementById("announcements-list");
-
 if (course.announcements.length === 0) {
   annList.innerHTML = `<p class="empty-state">No announcements for this course.</p>`;
 } else {
@@ -44,10 +38,8 @@ if (course.announcements.length === 0) {
   });
 }
 
-// ── Assignments tab ──────────────────────────────────────
-// ── Assignments tab ──────────────────────────────────────
+// ── Assignments ──────────────────────────────────────────
 const asnList = document.getElementById("assignments-list");
-
 if (course.assignments.length === 0) {
   asnList.innerHTML = `<p class="empty-state">No assignments for this course.</p>`;
 } else {
@@ -60,7 +52,6 @@ if (course.assignments.length === 0) {
     } else if (asn.status === "graded") {
       badge = `<span class="badge badge-graded">Graded ${asn.grade}</span>`;
     }
-
     let dateLine = `Due: ${asn.due}`;
     if (asn.submittedOn) dateLine += ` &nbsp;·&nbsp; Submitted: ${asn.submittedOn}`;
 
@@ -77,10 +68,9 @@ if (course.assignments.length === 0) {
   });
 }
 
-// ── Submitted tab (within this course) ──────────────────
+// ── Submitted ────────────────────────────────────────────
 const subList = document.getElementById("submitted-list");
 const done = course.assignments.filter(a => a.status === "submitted" || a.status === "graded");
-
 if (done.length === 0) {
   subList.innerHTML = `<p class="empty-state">Nothing submitted yet in this course.</p>`;
 } else {
